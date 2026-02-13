@@ -5,7 +5,7 @@ from langchain_groq import ChatGroq
 from langchain_pinecone import PineconeVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import RetrievalQA
 from pinecone import Pinecone
 
@@ -93,4 +93,18 @@ def chat():
     return jsonify({"answer": response['result']})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+from flask import Flask
+# ... other imports ...
+
+# FIX THIS LINE (from previous error):
+from langchain_text_splitters import RecursiveCharacterTextSplitter 
+
+app = Flask(__name__)
+
+# ... your routes (@app.route) ...
+
+if __name__ == "__main__":
+    # This part runs when you run it locally
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
