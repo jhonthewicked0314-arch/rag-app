@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuChat - RAG Bot</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 600px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; height: 90vh; margin-top: 20px; }
+        .header { background: #6200ea; color: white; padding: 20px; text-align: center; }
+        .upload-section { padding: 15px; border-bottom: 1px solid #ddd; background: #fafafa; display: flex; gap: 10px; align-items: center; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 15px; border-radius: 20px; max-width: 80%; line-height: 1.4; }
+        .user { background: #6200ea; color: white; align-self: flex-end; }
+        .bot { background: #e0e0e0; color: black; align-self: flex-start; }
+        .input-area { padding: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        button { padding: 10px 20px; background: #6200ea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        #loading { font-size: 12px; color: #666; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>📄 DocuChat AI</h2>
+    </div>
+    
+    <div class="upload-section">
+        <input type="file" id="pdfFile" accept=".pdf">
+        <button onclick="uploadPDF()" id="uploadBtn">Upload & Learn</button>
+    </div>
+    <div id="loading">Processing document... this might take a moment.</div>
+
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">Hello! Upload a PDF document and I will answer questions based on it.</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Ask something about the document..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function uploadPDF() {
+        const fileInput = document.getElementById('pdfFile');
+        const file = fileInput.files[0];
+        if (!file) return alert("Please select a file first.");
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('uploadBtn').disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            alert(data.message || data.error);
+        } catch (e) {
+            alert("Upload failed.");
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = false;
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage(text, 'user');
+        input.value = '';
+
+        try {
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: text })
+            });
+            const data = await res.json();
+            addMessage(data.answer, 'bot');
+        } catch (e) {
+            addMessage("Sorry, something went wrong.", 'bot');
+        }
+    }
+
+    function addMessage(text, sender) {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.className = `message ${sender}`;
+        div.innerText = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+</script>
+
+</body>
+</html>

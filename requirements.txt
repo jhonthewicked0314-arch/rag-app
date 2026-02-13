@@ -1,0 +1,12 @@
+flask
+flask-cors
+langchain
+langchain-community
+langchain-huggingface
+langchain-groq
+langchain-pinecone
+pinecone-client
+pypdf
+python-dotenv
+gunicorn
+sentence-transformers
